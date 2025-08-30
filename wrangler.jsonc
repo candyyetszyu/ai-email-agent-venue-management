@@ -1,14 +1,36 @@
 {
-  "name": "ai-email-agent-frontend",
+  "name": "ai-email-agent-backend",
+  "main": "backend/worker.js",
   "compatibility_date": "2025-08-30",
-  "site": {
-    "bucket": "./frontend/build"
-  },
+  "compatibility_flags": ["nodejs_compat"],
   "build": {
-    "command": "npm run build:frontend"
+    "command": "npm run build:backend"
   },
   "env": {
+    "NODE_ENV": "production"
+  },
+  "vars": {
     "NODE_ENV": "production",
-    "REACT_APP_API_URL": "https://email-agent-backend.your-subdomain.workers.dev"
-  }
+    "PORT": "8080"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "SESSIONS",
+      "id": "your-kv-namespace-id",
+      "preview_id": "your-preview-kv-namespace-id"
+    }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "email-agent-db",
+      "database_id": "your-database-id"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "FILES",
+      "bucket_name": "email-agent-files"
+    }
+  ]
 }
