@@ -12,25 +12,5 @@
   "vars": {
     "NODE_ENV": "production",
     "PORT": "8080"
-  },
-  "kv_namespaces": [
-    {
-      "binding": "SESSIONS",
-      "id": "your-kv-namespace-id",
-      "preview_id": "your-preview-kv-namespace-id"
-    }
-  ],
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "email-agent-db",
-      "database_id": "your-database-id"
-    }
-  ],
-  "r2_buckets": [
-    {
-      "binding": "FILES",
-      "bucket_name": "email-agent-files"
-    }
-  ]
+  }
 }
