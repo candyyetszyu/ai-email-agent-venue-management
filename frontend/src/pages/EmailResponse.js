@@ -27,7 +27,6 @@ import {
 } from '@mui/icons-material';
 import { useEmail } from '../context/EmailContext';
 import { useAI } from '../context/AIContext';
-import { useAuth } from '../context/AuthContext';
 
 const EmailResponse = () => {
   const { emailId } = useParams();
@@ -49,16 +48,6 @@ const EmailResponse = () => {
 
   const currentAIResponse = aiResponses[emailId];
 
-  useEffect(() => {
-    loadEmail();
-  }, [emailId, loadEmail]);
-
-  useEffect(() => {
-    if (currentAIResponse?.response) {
-      setEditedResponse(currentAIResponse.response);
-    }
-  }, [currentAIResponse?.response]);
-
   const loadEmail = useCallback(async () => {
     try {
       const emailData = await getEmail(emailProvider, emailId);
@@ -72,6 +61,16 @@ const EmailResponse = () => {
       console.error('Failed to load email:', error);
     }
   }, [getEmail, emailProvider, emailId, currentAIResponse?.analysis, analyzeEmail]);
+
+  useEffect(() => {
+    loadEmail();
+  }, [emailId, loadEmail]);
+
+  useEffect(() => {
+    if (currentAIResponse?.response) {
+      setEditedResponse(currentAIResponse.response);
+    }
+  }, [currentAIResponse?.response]);
 
   const handleGenerateResponse = async () => {
     try {

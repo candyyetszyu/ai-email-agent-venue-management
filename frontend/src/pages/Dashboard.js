@@ -6,27 +6,15 @@ import {
   Paper,
   Typography,
   Card,
-  CardContent,
   CardHeader,
   List,
-  ListItem,
-  ListItemText,
-  ListItemAvatar,
-  Avatar,
-  Chip,
   Button,
   IconButton,
   Divider,
   CircularProgress,
   Alert,
   Tabs,
-  Tab,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  TextField,
-  Badge
+  Tab
 } from '@mui/material';
 import {
   Refresh as RefreshIcon,
@@ -62,7 +50,6 @@ const Dashboard = () => {
     batchProcessEmails 
   } = useAI();
 
-  const [tabValue, setTabValue] = useState(0);
   const [filterType, setFilterType] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [dateRange, setDateRange] = useState({ from: null, to: null });
@@ -75,7 +62,6 @@ const Dashboard = () => {
 
   const handleProviderChange = (provider) => {
     setSelectedProvider(provider);
-    setTabValue(0);
   };
 
   const handleRefresh = async () => {
@@ -122,14 +108,7 @@ const Dashboard = () => {
     return true;
   });
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'processed': return <CheckCircleIcon color="success" />;
-      case 'pending': return <ScheduleIcon color="warning" />;
-      case 'error': return <EmailIcon color="error" />;
-      default: return <EmailIcon />;
-    }
-  };
+
 
 
 
