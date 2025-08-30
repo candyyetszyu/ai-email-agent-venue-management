@@ -1,12 +1,12 @@
-const express = require('express');
-const router = express.Router();
+const { Hono } = require('hono');
 const { google } = require('googleapis');
-const { Client } = require('@microsoft/microsoft-graph-client');
 const { body, query, validationResult } = require('express-validator');
 const authController = require('../controllers/authController');
 
 // Middleware to verify JWT token and set up OAuth client
 const auth = require('../middleware/auth');
+
+const router = new Hono();
 
 // Validation middleware
 const validateEvents = [
@@ -28,15 +28,15 @@ const validateEvents = [
 ];
 
 // Get calendar events
-router.get('/events', auth, authController.getGoogleOAuth2Client, validateEvents, async (req, res) => {
+router.get('/events', auth, authController.getGoogleOAuth2Client, validateEvents, async (c) => {
   try {
-    const calendar = google.calendar({ version: 'v3', auth: req.oauth2Client });
+    const calendar = google.calendar({ version: 'v3', auth: c.req.oauth2Client });
     
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate } = c.req.query();
     
     // Validate input parameters
     if (!startDate || !endDate) {
-      return res.status(400).json({ error: 'Start date and end date are required' });
+      return c.json({ error: 'Start date and end date are required' }, 400);
     }
     
     // Get calendar events
@@ -60,10 +60,10 @@ router.get('/events', auth, authController.getGoogleOAuth2Client, validateEvents
       status: event.status,
     }));
     
-    res.json({ events });
+    return c.json({ events });
   } catch (err) {
     console.error('Error fetching calendar events:', err);
-    res.status(500).json({ error: 'Failed to fetch calendar events' });
+    return c.json({ error: 'Failed to fetch calendar events' }, 500);
   }
 });
 
@@ -93,15 +93,15 @@ const validateAvailability = [
 ];
 
 // Check venue availability
-router.post('/check-availability', auth, authController.getGoogleOAuth2Client, validateAvailability, async (req, res) => {
+router.post('/check-availability', auth, authController.getGoogleOAuth2Client, validateAvailability, async (c) => {
   try {
-    const calendar = google.calendar({ version: 'v3', auth: req.oauth2Client });
+    const calendar = google.calendar({ version: 'v3', auth: c.req.oauth2Client });
     
-    const { venue, startTime, endTime } = req.body;
+    const { venue, startTime, endTime } = await c.req.json();
     
     // Validate input parameters
     if (!venue || !startTime) {
-      return res.status(400).json({ error: 'Venue and start time are required' });
+      return c.json({ error: 'Venue and start time are required' }, 400);
     }
 
     // If endTime is not provided, default to 2 hours after startTime
@@ -130,7 +130,7 @@ router.post('/check-availability', auth, authController.getGoogleOAuth2Client, v
     
     const isAvailable = conflictingEvents.length === 0;
     
-    res.json({
+    return c.json({
       isAvailable,
       venue,
       startTime: start.toISOString(),
@@ -139,39 +139,43 @@ router.post('/check-availability', auth, authController.getGoogleOAuth2Client, v
     });
   } catch (err) {
     console.error('Error checking venue availability:', err);
-    res.status(500).json({ error: 'Failed to check venue availability' });
+    return c.json({ error: 'Failed to check venue availability' }, 500);
   }
 });
 
 // Microsoft Graph calendar endpoints
 
 // Get Microsoft calendar events
-router.get('/microsoft/events', auth, authController.getMicrosoftGraphClient, validateEvents, async (req, res) => {
+router.get('/microsoft/events', auth, authController.getMicrosoftGraphClient, validateEvents, async (c) => {
   try {
-    const client = Client.init({
-      authProvider: (done) => {
-        done(null, req.msalToken);
-      },
-    });
-
-    const { startDate, endDate } = req.query;
+    const { startDate, endDate } = c.req.query();
     
     // Validate input parameters
     if (!startDate || !endDate) {
-      return res.status(400).json({ error: 'Start date and end date are required' });
+      return c.json({ error: 'Start date and end date are required' }, 400);
     }
 
-    // Get calendar events
-    const response = await client
-      .api('/me/calendar/events')
-      .query({
-        startDateTime: new Date(startDate).toISOString(),
-        endDateTime: new Date(endDate).toISOString(),
-        $orderby: 'start/dateTime',
-      })
-      .get();
+    // Get calendar events using fetch API
+    const queryParams = new URLSearchParams({
+      startDateTime: new Date(startDate).toISOString(),
+      endDateTime: new Date(endDate).toISOString(),
+      '$orderby': 'start/dateTime'
+    });
 
-    const events = response.value.map(event => ({
+    const response = await fetch(`https://graph.microsoft.com/v1.0/me/calendar/events?${queryParams}`, {
+      headers: {
+        'Authorization': `Bearer ${c.req.msalToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    const events = data.value.map(event => ({
       id: event.id,
       summary: event.subject,
       description: event.bodyPreview,
@@ -190,45 +194,49 @@ router.get('/microsoft/events', auth, authController.getMicrosoftGraphClient, va
       status: event.showAs,
     }));
 
-    res.json({ events });
+    return c.json({ events });
   } catch (err) {
     console.error('Error fetching Microsoft calendar events:', err);
-    res.status(500).json({ error: 'Failed to fetch Microsoft calendar events' });
+    return c.json({ error: 'Failed to fetch Microsoft calendar events' }, 500);
   }
 });
 
 // Check Microsoft calendar venue availability
-router.post('/microsoft/check-availability', auth, authController.getMicrosoftGraphClient, validateAvailability, async (req, res) => {
+router.post('/microsoft/check-availability', auth, authController.getMicrosoftGraphClient, validateAvailability, async (c) => {
   try {
-    const client = Client.init({
-      authProvider: (done) => {
-        done(null, req.msalToken);
-      },
-    });
-
-    const { venue, startTime, endTime } = req.body;
+    const { venue, startTime, endTime } = await c.req.json();
     
     // Validate input parameters
     if (!venue || !startTime) {
-      return res.status(400).json({ error: 'Venue and start time are required' });
+      return c.json({ error: 'Venue and start time are required' }, 400);
     }
 
     // If endTime is not provided, default to 2 hours after startTime
     const start = new Date(startTime);
     const end = endTime ? new Date(endTime) : new Date(start.getTime() + 2 * 60 * 60 * 1000);
 
-    // Get calendar events for the specified time range
-    const response = await client
-      .api('/me/calendar/events')
-      .query({
-        startDateTime: start.toISOString(),
-        endDateTime: end.toISOString(),
-        $orderby: 'start/dateTime',
-      })
-      .get();
+    // Get calendar events for the specified time range using fetch API
+    const queryParams = new URLSearchParams({
+      startDateTime: start.toISOString(),
+      endDateTime: end.toISOString(),
+      '$orderby': 'start/dateTime'
+    });
+
+    const response = await fetch(`https://graph.microsoft.com/v1.0/me/calendar/events?${queryParams}`, {
+      headers: {
+        'Authorization': `Bearer ${c.req.msalToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
 
     // Filter events by venue (location)
-    const conflictingEvents = response.value.filter(event => {
+    const conflictingEvents = data.value.filter(event => {
       const location = event.location?.displayName || '';
       return location.toLowerCase().includes(venue.toLowerCase());
     }).map(event => ({
@@ -240,7 +248,7 @@ router.post('/microsoft/check-availability', auth, authController.getMicrosoftGr
 
     const isAvailable = conflictingEvents.length === 0;
 
-    res.json({
+    return c.json({
       isAvailable,
       venue,
       startTime: start.toISOString(),
@@ -249,7 +257,7 @@ router.post('/microsoft/check-availability', auth, authController.getMicrosoftGr
     });
   } catch (err) {
     console.error('Error checking Microsoft calendar venue availability:', err);
-    res.status(500).json({ error: 'Failed to check Microsoft calendar venue availability' });
+    return c.json({ error: 'Failed to check Microsoft calendar venue availability' }, 500);
   }
 });
 
