@@ -1,7 +1,5 @@
 const jwt = require('jsonwebtoken');
 const { google } = require('googleapis');
-const { Client } = require('@microsoft/microsoft-graph-client');
-require('isomorphic-fetch');
 
 /**
  * Generate a JWT token for the user
