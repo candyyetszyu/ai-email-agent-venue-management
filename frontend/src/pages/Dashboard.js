@@ -131,14 +131,7 @@ const Dashboard = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'processed': return 'success';
-      case 'pending': return 'warning';
-      case 'error': return 'error';
-      default: return 'default';
-    }
-  };
+
 
   if (loading && emails.length === 0) {
     return (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Container,
@@ -10,16 +10,11 @@ import {
   CircularProgress,
   Divider,
   Grid,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Alert,
   Card,
   CardContent,
   Chip,
   IconButton,
-  Tooltip,
 } from '@mui/material';
 import {
   ArrowBack,
@@ -37,28 +32,26 @@ import { useAuth } from '../context/AuthContext';
 const EmailResponse = () => {
   const { emailId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
   const { getEmail, sendEmail, loading: emailLoading, error: emailError } = useEmail();
   const { 
     aiResponses, 
     analyzeEmail, 
     generateResponse, 
     updateResponse,
-    loading: aiLoading, 
-    error: aiError 
+    loading: aiLoading
   } = useAI();
 
   const [email, setEmail] = useState(null);
   const [editedResponse, setEditedResponse] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [sendStatus, setSendStatus] = useState('');
-  const [emailProvider, setEmailProvider] = useState('gmail');
+  const [emailProvider] = useState('gmail');
 
   const currentAIResponse = aiResponses[emailId];
 
   useEffect(() => {
     loadEmail();
-  }, [emailId]);
+  }, [emailId, loadEmail]);
 
   useEffect(() => {
     if (currentAIResponse?.response) {
@@ -66,7 +59,7 @@ const EmailResponse = () => {
     }
   }, [currentAIResponse?.response]);
 
-  const loadEmail = async () => {
+  const loadEmail = useCallback(async () => {
     try {
       const emailData = await getEmail(emailProvider, emailId);
       setEmail(emailData);
@@ -78,7 +71,7 @@ const EmailResponse = () => {
     } catch (error) {
       console.error('Failed to load email:', error);
     }
-  };
+  }, [getEmail, emailProvider, emailId, currentAIResponse?.analysis, analyzeEmail]);
 
   const handleGenerateResponse = async () => {
     try {
