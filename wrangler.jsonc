@@ -1,11 +1,13 @@
 {
   "name": "ai-email-agent-frontend",
-  "compatibility_date": "2024-01-01",
-  "build": {
-    "command": "npm run build:frontend",
-    "output_dir": "frontend/build"
+  "compatibility_date": "2025-08-30",
+  "site": {
+    "bucket": "./frontend/build"
   },
-  "environment": {
+  "build": {
+    "command": "npm run build:frontend"
+  },
+  "env": {
     "NODE_ENV": "production",
     "REACT_APP_API_URL": "https://email-agent-backend.your-subdomain.workers.dev"
   }
