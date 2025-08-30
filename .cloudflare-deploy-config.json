@@ -1,0 +1,9 @@
+{
+  "buildCommand": "npm run build:frontend",
+  "buildOutputPath": "frontend/build",
+  "rootDirectory": ".",
+  "environment": {
+    "NODE_ENV": "production",
+    "REACT_APP_API_URL": "https://email-agent-backend.your-subdomain.workers.dev"
+  }
+}
