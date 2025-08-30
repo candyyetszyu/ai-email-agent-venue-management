@@ -13,8 +13,7 @@ import {
 import {
   Search as SearchIcon,
   FilterList as FilterIcon,
-  Clear as ClearIcon,
-  CalendarToday as CalendarIcon
+  Clear as ClearIcon
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';

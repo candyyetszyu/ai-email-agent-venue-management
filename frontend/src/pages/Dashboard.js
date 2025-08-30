@@ -5,7 +5,6 @@ import {
   Grid,
   Paper,
   Typography,
-  Card,
   CardHeader,
   List,
   Button,
@@ -20,7 +19,6 @@ import {
   Refresh as RefreshIcon,
   Email as EmailIcon,
   CheckCircle as CheckCircleIcon,
-  Schedule as ScheduleIcon,
   Star as StarIcon
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';

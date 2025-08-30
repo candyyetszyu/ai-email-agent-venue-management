@@ -14,7 +14,6 @@ import {
 import {
   Email as EmailIcon,
   CheckCircle as CheckCircleIcon,
-  Schedule as ScheduleIcon,
   Error as ErrorIcon,
   Visibility as ViewIcon,
   SmartToy as AIIcon,

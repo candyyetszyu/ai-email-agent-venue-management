@@ -14,7 +14,6 @@ export const useAI = () => {
 };
 
 export const AIProvider = ({ children }) => {
-  const { user } = useAuth();
   const { showToast } = useToast();
   
   const [aiResponses, setAiResponses] = useState({});

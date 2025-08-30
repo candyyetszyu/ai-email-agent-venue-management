@@ -14,7 +14,6 @@ export const useEmail = () => {
 };
 
 export const EmailProvider = ({ children }) => {
-  const { user } = useAuth();
   const { showToast } = useToast();
   
   const [emails, setEmails] = useState([]);
