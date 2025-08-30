@@ -1,7 +1,4 @@
 const { google } = require('googleapis');
-const { Client } = require('@microsoft/microsoft-graph-client');
-const { TokenCredentialAuthenticationProvider } = require('@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials');
-const { ClientSecretCredential } = require('@azure/identity');
 
 class EmailService {
   constructor() {
@@ -169,9 +166,7 @@ class EmailService {
    */
   async getOutlookMessages(accessToken, options = {}) {
     try {
-      const client = this.getOutlookClient(accessToken);
-      
-      let query = '/me/messages';
+      let query = 'https://graph.microsoft.com/v1.0/me/messages';
       const queryParams = [];
       
       if (options.top) queryParams.push(`$top=${options.top}`);
@@ -183,13 +178,24 @@ class EmailService {
         query += '?' + queryParams.join('&');
       }
 
-      const response = await client.api(query).get();
+      const response = await fetch(query, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
       
       return {
-        messages: response.value || [],
-        total: response['@odata.count'] || response.value?.length || 0,
-        filteredMessages: response.value?.length || 0,
-        nextLink: response['@odata.nextLink']
+        messages: data.value || [],
+        total: data['@odata.count'] || data.value?.length || 0,
+        filteredMessages: data.value?.length || 0,
+        nextLink: data['@odata.nextLink']
       };
     } catch (error) {
       console.error('Error fetching Outlook messages:', error);
@@ -205,11 +211,20 @@ class EmailService {
    */
   async getOutlookMessage(accessToken, messageId) {
     try {
-      const client = this.getOutlookClient(accessToken);
+      const query = `https://graph.microsoft.com/v1.0/me/messages/${messageId}?$select=id,subject,from,toRecipients,ccRecipients,bccRecipients,receivedDateTime,body,hasAttachments,attachments`;
       
-      const message = await client.api(`/me/messages/${messageId}`)
-        .select('id,subject,from,toRecipients,ccRecipients,bccRecipients,receivedDateTime,body,hasAttachments,attachments')
-        .get();
+      const response = await fetch(query, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const message = await response.json();
 
       return {
         id: message.id,
@@ -237,8 +252,6 @@ class EmailService {
    */
   async sendOutlookMessage(accessToken, options) {
     try {
-      const client = this.getOutlookClient(accessToken);
-      
       const message = {
         subject: options.subject,
         body: {
@@ -250,10 +263,21 @@ class EmailService {
         bccRecipients: options.bcc?.map(email => ({ emailAddress: { address: email } })) || []
       };
 
-      const response = await client.api('/me/sendMail').post({
-        message,
-        saveToSentItems: true
+      const response = await fetch('https://graph.microsoft.com/v1.0/me/sendMail', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message,
+          saveToSentItems: true
+        })
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       return {
         success: true,
@@ -301,15 +325,24 @@ class EmailService {
    */
   async downloadOutlookAttachment(accessToken, messageId, attachmentId) {
     try {
-      const client = this.getOutlookClient(accessToken);
-      
-      const response = await client.api(`/me/messages/${messageId}/attachments/${attachmentId}`).get();
+      const response = await fetch(`https://graph.microsoft.com/v1.0/me/messages/${messageId}/attachments/${attachmentId}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
       
       return {
-        data: response.contentBytes,
-        name: response.name,
-        contentType: response.contentType,
-        size: response.size
+        data: data.contentBytes,
+        name: data.name,
+        contentType: data.contentType,
+        size: data.size
       };
     } catch (error) {
       console.error('Error downloading Outlook attachment:', error);
@@ -401,8 +434,6 @@ class EmailService {
    */
   async createOutlookWebhook(accessToken, webhookUrl) {
     try {
-      const client = this.getOutlookClient(accessToken);
-      
       const subscription = {
         changeType: 'created,updated,deleted',
         notificationUrl: webhookUrl,
@@ -411,12 +442,25 @@ class EmailService {
         clientState: 'email-agent-webhook'
       };
 
-      const response = await client.api('/subscriptions').post(subscription);
+      const response = await fetch('https://graph.microsoft.com/v1.0/subscriptions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(subscription)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
       
       return {
         success: true,
-        id: response.id,
-        expirationDateTime: response.expirationDateTime
+        id: data.id,
+        expirationDateTime: data.expirationDateTime
       };
     } catch (error) {
       console.error('Error creating Outlook webhook:', error);
@@ -424,27 +468,7 @@ class EmailService {
     }
   }
 
-  /**
-   * Get Outlook client instance
-   * @param {string} accessToken - Microsoft access token
-   * @returns {Object} Microsoft Graph client
-   */
-  getOutlookClient(accessToken) {
-    const authProvider = new TokenCredentialAuthenticationProvider(
-      new ClientSecretCredential(
-        process.env.MICROSOFT_TENANT_ID,
-        process.env.MICROSOFT_CLIENT_ID,
-        process.env.MICROSOFT_CLIENT_SECRET
-      ),
-      {
-        scopes: ['https://graph.microsoft.com/.default']
-      }
-    );
 
-    return Client.initWithMiddleware({
-      authProvider: authProvider
-    });
-  }
 
   /**
    * Parse Gmail message body
