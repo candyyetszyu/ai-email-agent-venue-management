@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import {
-  ListItem,
-  ListItemText,
   Typography,
   Box,
   Chip,
