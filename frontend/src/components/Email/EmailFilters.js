@@ -88,21 +88,27 @@ const EmailFilters = ({
             label="From"
             value={dateRange.from}
             onChange={(date) => setDateRange(prev => ({ ...prev, from: date }))}
-            renderInput={(params) => (
-              <TextField {...params} size="small" sx={{ width: 120 }} />
-            )}
             maxDate={dateRange.to || new Date()}
+            slotProps={{
+              textField: {
+                size: "small",
+                sx: { width: 120 }
+              }
+            }}
           />
           
           <DatePicker
             label="To"
             value={dateRange.to}
             onChange={(date) => setDateRange(prev => ({ ...prev, to: date }))}
-            renderInput={(params) => (
-              <TextField {...params} size="small" sx={{ width: 120 }} />
-            )}
             minDate={dateRange.from}
             maxDate={new Date()}
+            slotProps={{
+              textField: {
+                size: "small",
+                sx: { width: 120 }
+              }
+            }}
           />
         </Box>
 
