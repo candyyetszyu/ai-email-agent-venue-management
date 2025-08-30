@@ -33,11 +33,7 @@ import {
   Email as EmailIcon,
   CheckCircle as CheckCircleIcon,
   Schedule as ScheduleIcon,
-  Star as StarIcon,
-  Reply as ReplyIcon,
-  Forward as ForwardIcon,
-  FilterList as FilterIcon,
-  Search as SearchIcon
+  Star as StarIcon
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { useEmail } from '../context/EmailContext';
@@ -75,7 +71,7 @@ const Dashboard = () => {
   useEffect(() => {
     fetchEmails(selectedProvider, { filter: filterType, search: searchQuery });
     fetchStats(selectedProvider);
-  }, [selectedProvider, filterType, searchQuery]);
+  }, [selectedProvider, filterType, searchQuery, fetchEmails, fetchStats]);
 
   const handleProviderChange = (provider) => {
     setSelectedProvider(provider);

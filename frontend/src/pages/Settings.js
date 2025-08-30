@@ -20,17 +20,8 @@ import {
 import { 
   Google as GoogleIcon, 
   Microsoft as MicrosoftIcon,
-  Check as CheckIcon,
-  Close as CloseIcon,
-  Refresh as RefreshIcon,
-  Logout as LogoutIcon,
 } from '@mui/icons-material';
 import { AuthContext } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
-import AccountStatus from '../components/AccountStatus';
-import UserPreferences from '../components/UserPreferences';
-import LoadingSpinner from '../components/LoadingSpinner';
-import ErrorDisplay from '../components/ErrorDisplay';
 
 const Settings = () => {
   const { user, logout } = useContext(AuthContext);
