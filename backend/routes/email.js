@@ -1,95 +1,77 @@
-const express = require('express');
-const router = express.Router();
+const { Hono } = require('hono');
 const emailController = require('../controllers/emailController');
-const { authenticateGmail, authenticateOutlook } = require('../middleware/auth');
+const auth = require('../middleware/auth');
+
+const router = new Hono();
 
 /**
  * Gmail Routes
  */
 
 // Get Gmail messages with filtering and pagination
-router.get('/gmail/messages', authenticateGmail, emailController.getGmailMessages);
+router.get('/gmail/messages', auth, emailController.getGmailMessages);
 
 // Get specific Gmail message details
-router.get('/gmail/messages/:id', authenticateGmail, emailController.getGmailMessage);
+router.get('/gmail/messages/:id', auth, emailController.getGmailMessage);
 
 // Send Gmail message with attachments support
-router.post('/gmail/send', authenticateGmail, emailController.sendGmailMessage);
+router.post('/gmail/send', auth, emailController.sendGmailMessage);
 
 // Download Gmail attachment
-router.get('/gmail/messages/:messageId/attachments/:attachmentId', authenticateGmail, emailController.downloadGmailAttachment);
+router.get('/gmail/messages/:messageId/attachments/:attachmentId', auth, emailController.downloadGmailAttachment);
 
 // Gmail webhook subscription
-router.post('/gmail/webhook', authenticateGmail, emailController.createWebhook);
+router.post('/gmail/webhook', auth, emailController.createWebhook);
 
 // Gmail statistics
-router.get('/gmail/stats', authenticateGmail, emailController.getEmailStats);
+router.get('/gmail/stats', auth, emailController.getEmailStats);
 
 /**
  * Outlook Routes
  */
 
 // Get Outlook messages with filtering and pagination
-router.get('/outlook/messages', authenticateOutlook, emailController.getOutlookMessages);
+router.get('/outlook/messages', auth, emailController.getOutlookMessages);
 
 // Get specific Outlook message details
-router.get('/outlook/messages/:id', authenticateOutlook, emailController.getOutlookMessage);
+router.get('/outlook/messages/:id', auth, emailController.getOutlookMessage);
 
 // Send Outlook message with attachments support
-router.post('/outlook/send', authenticateOutlook, emailController.sendOutlookMessage);
+router.post('/outlook/send', auth, emailController.sendOutlookMessage);
 
 // Download Outlook attachment
-router.get('/outlook/messages/:messageId/attachments/:attachmentId', authenticateOutlook, emailController.downloadOutlookAttachment);
+router.get('/outlook/messages/:messageId/attachments/:attachmentId', auth, emailController.downloadOutlookAttachment);
 
 // Outlook webhook subscription
-router.post('/outlook/webhook', authenticateOutlook, emailController.createWebhook);
+router.post('/outlook/webhook', auth, emailController.createWebhook);
 
 // Outlook statistics
-router.get('/outlook/stats', authenticateOutlook, emailController.getEmailStats);
+router.get('/outlook/stats', auth, emailController.getEmailStats);
 
 /**
  * Universal Routes (work with both providers)
  */
 
 // Batch process multiple emails
-router.post('/batch-process', (req, res, next) => {
-  const { provider } = req.body;
-  
-  if (!provider) {
-    return res.status(400).json({ 
-      success: false, 
-      error: 'Provider parameter is required (gmail or outlook)' 
-    });
-  }
-  
-  if (provider === 'gmail') {
-    authenticateGmail(req, res, next);
-  } else if (provider === 'outlook') {
-    authenticateOutlook(req, res, next);
-  } else {
-    return res.status(400).json({ 
-      success: false, 
-      error: 'Invalid provider. Use "gmail" or "outlook"' 
-    });
-  }
-}, emailController.batchProcessEmails);
+router.post('/batch-process', auth, emailController.batchProcessEmails);
 
 // Webhook endpoint for receiving real-time notifications
-router.post('/webhook/:provider', (req, res) => {
-  const { provider } = req.params;
+router.post('/webhook/:provider', async (c) => {
+  const { provider } = c.req.param();
   
   if (!['gmail', 'outlook'].includes(provider)) {
-    return res.status(400).json({ 
+    return c.json({ 
       success: false, 
       error: 'Invalid provider. Use "gmail" or "outlook"' 
-    });
+    }, 400);
   }
   
   // Handle webhook notifications
-  console.log(`Received ${provider} webhook:`, req.body);
+  const body = await c.req.json();
+  console.log(`Received ${provider} webhook:`, body);
   
   // Acknowledge receipt
-  res.status(200).json({ success: true, message: 'Webhook received' });
+  return c.json({ success: true, message: 'Webhook received' });
 });
 
 /**
@@ -97,51 +79,60 @@ router.post('/webhook/:provider', (req, res) => {
  */
 
 // Check Gmail connection
-router.get('/gmail/health', authenticateGmail, async (req, res) => {
+router.get('/gmail/health', auth, async (c) => {
   try {
-    const oauth2Client = req.oauth2Client;
+    const oauth2Client = c.req.oauth2Client;
     const { google } = require('googleapis');
     const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
     
     await gmail.users.getProfile({ userId: 'me' });
     
-    res.json({ 
+    return c.json({ 
       success: true, 
       provider: 'gmail',
       status: 'connected',
-      user: req.user.email 
+      user: c.req.user.email 
     });
   } catch (error) {
-    res.status(500).json({ 
+    return c.json({ 
       success: false, 
       provider: 'gmail',
       status: 'error',
       error: error.message 
-    });
+    }, 500);
   }
 });
 
 // Check Outlook connection
-router.get('/outlook/health', authenticateOutlook, async (req, res) => {
+router.get('/outlook/health', auth, async (c) => {
   try {
-    const accessToken = req.msalToken;
-    const client = require('../services/emailService').getOutlookClient(accessToken);
+    const accessToken = c.req.msalToken;
     
-    await client.api('/me').get();
+    // Use fetch API instead of Microsoft Graph client
+    const response = await fetch('https://graph.microsoft.com/v1.0/me', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
     
-    res.json({ 
+    if (!response.ok) {
+      throw new Error('Failed to connect to Microsoft Graph API');
+    }
+    
+    return c.json({ 
       success: true, 
       provider: 'outlook',
       status: 'connected',
-      user: req.user.email 
+      user: c.req.user.email 
     });
   } catch (error) {
-    res.status(500).json({ 
+    return c.json({ 
       success: false, 
       provider: 'outlook',
       status: 'error',
       error: error.message 
-    });
+    }, 500);
   }
 });
 
@@ -150,25 +141,9 @@ router.get('/outlook/health', authenticateOutlook, async (req, res) => {
  */
 
 // Search across Gmail messages
-router.get('/gmail/search', authenticateGmail, emailController.getGmailMessages);
+router.get('/gmail/search', auth, emailController.getGmailMessages);
 
 // Search across Outlook messages
-router.get('/outlook/search', authenticateOutlook, emailController.getOutlookMessages);
+router.get('/outlook/search', auth, emailController.getOutlookMessages);
 
-/**
- * Rate Limiting and Error Handling Middleware
- */
-
-// Global error handler for email routes
-router.use((error, req, res, next) => {
-  console.error('Email route error:', error);
-  
-  res.status(error.status || 500).json({
-    success: false,
-    error: error.message || 'Internal server error',
-    timestamp: new Date().toISOString(),
-    path: req.path
-  });
-});
-
-module.exports = router;
+export default router;
