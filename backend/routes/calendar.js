@@ -1,6 +1,5 @@
 const { Hono } = require('hono');
 const { google } = require('googleapis');
-const { body, query, validationResult } = require('express-validator');
 const authController = require('../controllers/authController');
 
 // Middleware to verify JWT token and set up OAuth client
@@ -9,23 +8,22 @@ const auth = require('../middleware/auth');
 const router = new Hono();
 
 // Validation middleware
-const validateEvents = [
-  query('startDate')
-    .isISO8601()
-    .toDate()
-    .withMessage('Start date must be a valid ISO 8601 date'),
-  query('endDate')
-    .isISO8601()
-    .toDate()
-    .withMessage('End date must be a valid ISO 8601 date'),
-  (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    next();
+const validateEvents = async (c, next) => {
+  const { startDate, endDate } = c.req.query();
+  
+  if (!startDate || !endDate) {
+    return c.json({ error: 'Start date and end date are required' }, 400);
   }
-];
+  
+  try {
+    new Date(startDate);
+    new Date(endDate);
+  } catch (error) {
+    return c.json({ error: 'Invalid date format' }, 400);
+  }
+  
+  await next();
+};
 
 // Get calendar events
 router.get('/events', auth, authController.getGoogleOAuth2Client, validateEvents, async (c) => {
@@ -68,29 +66,28 @@ router.get('/events', auth, authController.getGoogleOAuth2Client, validateEvents
 });
 
 // Validation middleware for availability check
-const validateAvailability = [
-  body('venue')
-    .trim()
-    .isLength({ min: 1, max: 100 })
-    .withMessage('Venue name must be between 1 and 100 characters')
-    .escape(),
-  body('startTime')
-    .isISO8601()
-    .toDate()
-    .withMessage('Start time must be a valid ISO 8601 date'),
-  body('endTime')
-    .optional()
-    .isISO8601()
-    .toDate()
-    .withMessage('End time must be a valid ISO 8601 date'),
-  (req, res, next) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-    next();
+const validateAvailability = async (c, next) => {
+  const { venue, startTime, endTime } = await c.req.json();
+  
+  if (!venue || venue.trim().length === 0 || venue.trim().length > 100) {
+    return c.json({ error: 'Venue name must be between 1 and 100 characters' }, 400);
   }
-];
+  
+  if (!startTime) {
+    return c.json({ error: 'Start time is required' }, 400);
+  }
+  
+  try {
+    new Date(startTime);
+    if (endTime) {
+      new Date(endTime);
+    }
+  } catch (error) {
+    return c.json({ error: 'Invalid date format' }, 400);
+  }
+  
+  await next();
+};
 
 // Check venue availability
 router.post('/check-availability', auth, authController.getGoogleOAuth2Client, validateAvailability, async (c) => {

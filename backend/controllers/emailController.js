@@ -1,6 +1,5 @@
 const EmailService = require('../services/emailService');
 const { google } = require('googleapis');
-const { body, validationResult } = require('express-validator');
 
 const emailService = new EmailService();
 
@@ -103,21 +102,8 @@ exports.getGmailMessage = async (req, res) => {
  */
 exports.sendGmailMessage = [
   body('to').isEmail().normalizeEmail().withMessage('Valid recipient email required'),
-  body('subject').trim().isLength({ min: 1, max: 200 }).withMessage('Subject required (1-200 chars)'),
-  body('body').trim().isLength({ min: 1, max: 10000 }).withMessage('Body required (1-10000 chars)'),
-  body('cc').optional().isArray().withMessage('CC must be an array'),
-  body('bcc').optional().isArray().withMessage('BCC must be an array'),
-  body('attachments').optional().isArray().withMessage('Attachments must be an array'),
-  
   async (req, res) => {
     try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ 
-          success: false, 
-          errors: errors.array() 
-        });
-      }
 
       const oauth2Client = req.oauth2Client;
       if (!oauth2Client) {
@@ -247,23 +233,8 @@ exports.getOutlookMessage = async (req, res) => {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-exports.sendOutlookMessage = [
-  body('to').isEmail().normalizeEmail().withMessage('Valid recipient email required'),
-  body('subject').trim().isLength({ min: 1, max: 200 }).withMessage('Subject required (1-200 chars)'),
-  body('body').trim().isLength({ min: 1, max: 10000 }).withMessage('Body required (1-10000 chars)'),
-  body('cc').optional().isArray().withMessage('CC must be an array'),
-  body('bcc').optional().isArray().withMessage('BCC must be an array'),
-  body('attachments').optional().isArray().withMessage('Attachments must be an array'),
-
-  async (req, res) => {
-    try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        return res.status(400).json({ 
-          success: false, 
-          errors: errors.array() 
-        });
-      }
+exports.sendOutlookMessage = async (req, res) => {
+  try {
 
       const accessToken = req.msalToken;
       if (!accessToken) {
