@@ -22,6 +22,23 @@ app.use('*', cors({
   allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }))
 
+// Root route
+app.get('/', (c) => {
+  return c.json({ 
+    message: 'AI Email Agent Backend API',
+    version: '1.0.0',
+    status: 'running',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/health',
+      auth: '/api/auth/*',
+      email: '/api/email/*',
+      calendar: '/api/calendar/*',
+      ai: '/api/ai/*'
+    }
+  })
+})
+
 // Health check
 app.get('/health', (c) => {
   return c.json({ status: 'OK', timestamp: new Date().toISOString() })
