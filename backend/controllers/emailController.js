@@ -1,5 +1,5 @@
-const EmailService = require('../services/emailService');
-const { google } = require('googleapis');
+import EmailService from '../services/emailService.js';
+import { google } from 'googleapis';
 
 const emailService = new EmailService();
 
@@ -8,7 +8,7 @@ const emailService = new EmailService();
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-exports.getGmailMessages = async (req, res) => {
+export const getGmailMessages = async (req, res) => {
   try {
     const oauth2Client = req.oauth2Client;
     if (!oauth2Client) {
@@ -66,7 +66,7 @@ exports.getGmailMessages = async (req, res) => {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-exports.getGmailMessage = async (req, res) => {
+export const getGmailMessage = async (req, res) => {
   try {
     const { id } = req.params;
     const oauth2Client = req.oauth2Client;
@@ -100,7 +100,7 @@ exports.getGmailMessage = async (req, res) => {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-exports.sendGmailMessage = async (req, res) => {
+export const sendGmailMessage = async (req, res) => {
   try {
     const oauth2Client = req.oauth2Client;
     if (!oauth2Client) {
@@ -141,7 +141,7 @@ exports.sendGmailMessage = async (req, res) => {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-exports.getOutlookMessages = async (req, res) => {
+export const getOutlookMessages = async (req, res) => {
   try {
     const accessToken = req.msalToken;
     if (!accessToken) {
@@ -195,7 +195,7 @@ exports.getOutlookMessages = async (req, res) => {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-exports.getOutlookMessage = async (req, res) => {
+export const getOutlookMessage = async (req, res) => {
   try {
     const { id } = req.params;
     const accessToken = req.msalToken;
@@ -229,7 +229,7 @@ exports.getOutlookMessage = async (req, res) => {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-exports.sendOutlookMessage = async (req, res) => {
+export const sendOutlookMessage = async (req, res) => {
   try {
 
       const accessToken = req.msalToken;
@@ -270,7 +270,7 @@ exports.sendOutlookMessage = async (req, res) => {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-exports.downloadGmailAttachment = async (req, res) => {
+export const downloadGmailAttachment = async (req, res) => {
   try {
     const { messageId, attachmentId } = req.params;
     const oauth2Client = req.oauth2Client;
@@ -300,7 +300,7 @@ exports.downloadGmailAttachment = async (req, res) => {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-exports.downloadOutlookAttachment = async (req, res) => {
+export const downloadOutlookAttachment = async (req, res) => {
   try {
     const { messageId, attachmentId } = req.params;
     const accessToken = req.msalToken;
@@ -330,7 +330,7 @@ exports.downloadOutlookAttachment = async (req, res) => {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-exports.batchProcessEmails = async (req, res) => {
+export const batchProcessEmails = async (req, res) => {
   try {
     const { provider, emailIds } = req.body;
     const auth = provider === 'gmail' ? req.oauth2Client : req.msalToken;

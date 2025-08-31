@@ -1,5 +1,5 @@
-const { Hono } = require('hono');
-const jwt = require('jsonwebtoken');
+import { Hono } from 'hono';
+import jwt from 'jsonwebtoken';
 
 const router = new Hono();
 
@@ -187,4 +187,4 @@ router.get('/logout', (c) => {
   return c.json({ message: 'Logged out successfully' });
 });
 
-module.exports = router;
+export default router;

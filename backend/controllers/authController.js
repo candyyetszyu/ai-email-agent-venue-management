@@ -1,5 +1,5 @@
-const jwt = require('jsonwebtoken');
-const { google } = require('googleapis');
+import jwt from 'jsonwebtoken';
+import { google } from 'googleapis';
 
 /**
  * Generate a JWT token for the user
@@ -24,7 +24,7 @@ const generateToken = (user) => {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-exports.googleCallback = (req, res) => {
+export const googleCallback = (req, res) => {
   try {
     // User should be available from passport
     if (!req.user) {
@@ -47,7 +47,7 @@ exports.googleCallback = (req, res) => {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-exports.microsoftCallback = (req, res) => {
+export const microsoftCallback = (req, res) => {
   try {
     // User should be available from passport
     if (!req.user) {
@@ -70,7 +70,7 @@ exports.microsoftCallback = (req, res) => {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-exports.verifyToken = (req, res) => {
+export const verifyToken = (req, res) => {
   try {
     // Get token from authorization header
     const token = req.headers.authorization?.split(' ')[1];
@@ -102,7 +102,7 @@ exports.verifyToken = (req, res) => {
  * @param {Object} res - Express response object
  * @param {Function} next - Express next function
  */
-exports.getGoogleOAuth2Client = (req, res, next) => {
+export const getGoogleOAuth2Client = (req, res, next) => {
   try {
     // Get token from authorization header
     const token = req.headers.authorization?.split(' ')[1];
@@ -148,7 +148,7 @@ exports.getGoogleOAuth2Client = (req, res, next) => {
  * @param {Object} res - Express response object
  * @param {Function} next - Express next function
  */
-exports.getMicrosoftGraphClient = (req, res, next) => {
+export const getMicrosoftGraphClient = (req, res, next) => {
   try {
     // Get token from authorization header
     const token = req.headers.authorization?.split(' ')[1];

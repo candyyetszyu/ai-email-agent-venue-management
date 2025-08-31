@@ -1,6 +1,6 @@
-const { Hono } = require('hono');
-const emailController = require('../controllers/emailController');
-const auth = require('../middleware/auth');
+import { Hono } from 'hono';
+import emailController from '../controllers/emailController.js';
+import auth from '../middleware/auth.js';
 
 const router = new Hono();
 
@@ -146,4 +146,4 @@ router.get('/gmail/search', auth, emailController.getGmailMessages);
 // Search across Outlook messages
 router.get('/outlook/search', auth, emailController.getOutlookMessages);
 
-module.exports = router;
+export default router;

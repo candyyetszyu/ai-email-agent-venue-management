@@ -1,13 +1,13 @@
-const { Hono } = require('hono');
-const { 
+import { Hono } from 'hono';
+import { 
   analyzeEmail, 
   generateResponse, 
   batchProcessEmails, 
   detectEmailLanguage 
-} = require('../controllers/aiController');
+} from '../controllers/aiController.js';
 
 // Middleware to verify JWT token
-const auth = require('../middleware/auth');
+import auth from '../middleware/auth.js';
 
 const router = new Hono();
 
@@ -219,4 +219,4 @@ router.get('/models', auth, (c) => {
   });
 });
 
-module.exports = router;
+export default router;

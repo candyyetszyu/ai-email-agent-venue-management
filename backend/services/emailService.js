@@ -1,4 +1,4 @@
-const { google } = require('googleapis');
+import { google } from 'googleapis';
 
 class EmailService {
   constructor() {
@@ -562,4 +562,4 @@ class EmailService {
   }
 }
 
-module.exports = EmailService;
+export default EmailService;
