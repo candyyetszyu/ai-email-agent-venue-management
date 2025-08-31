@@ -373,7 +373,7 @@ export const batchProcessEmails = async (req, res) => {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-exports.createWebhook = async (req, res) => {
+export const createWebhook = async (req, res) => {
   try {
     const { provider, webhookUrl } = req.body;
     
@@ -418,7 +418,7 @@ exports.createWebhook = async (req, res) => {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-exports.getEmailStats = async (req, res) => {
+export const getEmailStats = async (req, res) => {
   try {
     const { provider } = req.query;
     const auth = provider === 'gmail' ? req.oauth2Client : req.msalToken;
