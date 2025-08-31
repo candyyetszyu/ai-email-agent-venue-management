@@ -146,4 +146,4 @@ router.get('/gmail/search', auth, emailController.getGmailMessages);
 // Search across Outlook messages
 router.get('/outlook/search', auth, emailController.getOutlookMessages);
 
-export default router;
+module.exports = router;

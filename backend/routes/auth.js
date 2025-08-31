@@ -187,4 +187,4 @@ router.get('/logout', (c) => {
   return c.json({ message: 'Logged out successfully' });
 });
 
-export default router;
+module.exports = router;

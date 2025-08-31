@@ -258,4 +258,4 @@ router.post('/microsoft/check-availability', auth, authController.getMicrosoftGr
   }
 });
 
-module.exports = router;
+export default router;

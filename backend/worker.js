@@ -1,13 +1,13 @@
-import { Hono } from 'hono'
-import { cors } from 'hono/cors'
-import { logger } from 'hono/logger'
-import { secureHeaders } from 'hono/secure-headers'
+const { Hono } = require('hono')
+const { cors } = require('hono/cors')
+const { logger } = require('hono/logger')
+const { secureHeaders } = require('hono/secure-headers')
 
 // Import route handlers
-import authRoutes from './routes/auth.js'
-import calendarRoutes from './routes/calendar.js'
-import emailRoutes from './routes/email.js'
-import aiRoutes from './routes/ai.js'
+const authRoutes = require('./routes/auth.js')
+const calendarRoutes = require('./routes/calendar.js')
+const emailRoutes = require('./routes/email.js')
+const aiRoutes = require('./routes/ai.js')
 
 // Create Hono app
 const app = new Hono()
@@ -47,4 +47,4 @@ app.onError((err, c) => {
   }, 500)
 })
 
-export default app
+module.exports = app

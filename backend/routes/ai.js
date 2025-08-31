@@ -219,4 +219,4 @@ router.get('/models', auth, (c) => {
   });
 });
 
-export default router;
+module.exports = router;
