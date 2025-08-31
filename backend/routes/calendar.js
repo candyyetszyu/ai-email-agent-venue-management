@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { google } from 'googleapis';
-import authController from '../controllers/authController.js';
+import * as authController from '../controllers/authController.js';
 
 // Middleware to verify JWT token and set up OAuth client
 import auth from '../middleware/auth.js';

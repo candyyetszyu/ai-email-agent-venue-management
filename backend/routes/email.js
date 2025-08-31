@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import emailController from '../controllers/emailController.js';
+import * as emailController from '../controllers/emailController.js';
 import auth from '../middleware/auth.js';
 
 const router = new Hono();

@@ -1,10 +1,5 @@
 import { Hono } from 'hono';
-import { 
-  analyzeEmail, 
-  generateResponse, 
-  batchProcessEmails, 
-  detectEmailLanguage 
-} from '../controllers/aiController.js';
+import * as aiController from '../controllers/aiController.js';
 
 // Middleware to verify JWT token
 import auth from '../middleware/auth.js';
@@ -28,7 +23,7 @@ router.post('/analyze-email', auth, async (c) => {
       }, 400);
     }
 
-    const analysis = await analyzeEmail(emailContent, detectedLanguage);
+    const analysis = await aiController.analyzeEmail(emailContent, detectedLanguage);
     
     return c.json({
       success: true,
@@ -69,7 +64,7 @@ router.post('/generate-response', auth, async (c) => {
       }, 400);
     }
 
-    const response = await generateResponse(
+    const response = await aiController.generateResponse(
       originalEmail, 
       calendarData, 
       senderName, 
@@ -110,7 +105,7 @@ router.post('/detect-language', auth, async (c) => {
       }, 400);
     }
 
-    const language = await detectEmailLanguage(emailContent);
+    const language = await aiController.detectEmailLanguage(emailContent);
     
     return c.json({
       success: true,
@@ -160,7 +155,7 @@ router.post('/batch-process', auth, async (c) => {
       }, 400);
     }
 
-    const results = await batchProcessEmails(emails);
+    const results = await aiController.batchProcessEmails(emails);
     
     const summary = {
       total: results.length,
