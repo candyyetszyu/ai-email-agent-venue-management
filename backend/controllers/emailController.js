@@ -100,45 +100,41 @@ exports.getGmailMessage = async (req, res) => {
  * @param {Object} req - Express request object
  * @param {Object} res - Express response object
  */
-exports.sendGmailMessage = [
-  body('to').isEmail().normalizeEmail().withMessage('Valid recipient email required'),
-  async (req, res) => {
-    try {
-
-      const oauth2Client = req.oauth2Client;
-      if (!oauth2Client) {
-        return res.status(401).json({ error: 'Authentication required' });
-      }
-
-      const { to, subject, body, cc = [], bcc = [], attachments = [] } = req.body;
-
-      const options = {
-        from: req.user.email,
-        to,
-        subject,
-        body,
-        cc,
-        bcc,
-        attachments
-      };
-
-      const result = await emailService.sendGmailMessage(oauth2Client, options);
-      
-      res.json({
-        success: true,
-        data: result,
-        message: 'Email sent successfully'
-      });
-    } catch (error) {
-      console.error('Error sending Gmail message:', error);
-      res.status(500).json({ 
-        success: false, 
-        error: 'Failed to send Gmail message',
-        details: error.message 
-      });
+exports.sendGmailMessage = async (req, res) => {
+  try {
+    const oauth2Client = req.oauth2Client;
+    if (!oauth2Client) {
+      return res.status(401).json({ error: 'Authentication required' });
     }
+
+    const { to, subject, body, cc = [], bcc = [], attachments = [] } = req.body;
+
+    const options = {
+      from: req.user.email,
+      to,
+      subject,
+      body,
+      cc,
+      bcc,
+      attachments
+    };
+
+    const result = await emailService.sendGmailMessage(oauth2Client, options);
+    
+    res.json({
+      success: true,
+      data: result,
+      message: 'Email sent successfully'
+    });
+  } catch (error) {
+    console.error('Error sending Gmail message:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to send Gmail message',
+      details: error.message 
+    });
   }
-];
+};
 
 /**
  * Get Outlook messages with advanced filtering and pagination
