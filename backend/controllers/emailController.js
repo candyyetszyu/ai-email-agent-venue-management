@@ -268,7 +268,6 @@ exports.sendOutlookMessage = async (req, res) => {
       });
     }
   }
-];
 
 /**
  * Download Gmail attachment

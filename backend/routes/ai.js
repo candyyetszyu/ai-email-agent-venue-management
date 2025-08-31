@@ -1,5 +1,4 @@
-const express = require('express');
-const router = express.Router();
+const { Hono } = require('hono');
 const { 
   analyzeEmail, 
   generateResponse, 
@@ -10,26 +9,28 @@ const {
 // Middleware to verify JWT token
 const auth = require('../middleware/auth');
 
+const router = new Hono();
+
 /**
  * @route   POST /api/ai/analyze-email
  * @desc    Analyze email content to extract booking information using bilingual AI
  * @access  Private
  */
-router.post('/analyze-email', auth, async (req, res) => {
+router.post('/analyze-email', auth, async (c) => {
   try {
-    const { emailContent, detectedLanguage } = req.body;
+    const { emailContent, detectedLanguage } = await c.req.json();
     
     if (!emailContent) {
-      return res.status(400).json({ 
+      return c.json({ 
         success: false,
         message: 'Missing email content',
         error: 'emailContent is required'
-      });
+      }, 400);
     }
 
     const analysis = await analyzeEmail(emailContent, detectedLanguage);
     
-    res.json({
+    return c.json({
       success: true,
       analysis,
       language: analysis.language,
@@ -37,11 +38,11 @@ router.post('/analyze-email', auth, async (req, res) => {
     });
   } catch (err) {
     console.error('Error analyzing email:', err);
-    res.status(500).json({ 
+    return c.json({ 
       success: false,
       message: 'Error analyzing email',
       error: err.message
-    });
+    }, 500);
   }
 });
 
@@ -50,7 +51,7 @@ router.post('/analyze-email', auth, async (req, res) => {
  * @desc    Generate bilingual email response for venue booking inquiries
  * @access  Private
  */
-router.post('/generate-response', auth, async (req, res) => {
+router.post('/generate-response', auth, async (c) => {
   try {
     const { 
       originalEmail, 
@@ -58,14 +59,14 @@ router.post('/generate-response', auth, async (req, res) => {
       venueInfo, 
       senderName,
       targetLanguage 
-    } = req.body;
+    } = await c.req.json();
     
     if (!originalEmail) {
-      return res.status(400).json({ 
+      return c.json({ 
         success: false,
         message: 'Missing original email content',
         error: 'originalEmail is required'
-      });
+      }, 400);
     }
 
     const response = await generateResponse(
@@ -76,7 +77,7 @@ router.post('/generate-response', auth, async (req, res) => {
       targetLanguage
     );
     
-    res.json({
+    return c.json({
       success: true,
       response,
       language: response.primaryLanguage,
@@ -84,11 +85,11 @@ router.post('/generate-response', auth, async (req, res) => {
     });
   } catch (err) {
     console.error('Error generating response:', err);
-    res.status(500).json({ 
+    return c.json({ 
       success: false,
       message: 'Error generating response',
       error: err.message
-    });
+    }, 500);
   }
 });
 
@@ -97,32 +98,32 @@ router.post('/generate-response', auth, async (req, res) => {
  * @desc    Detect the language of email content
  * @access  Private
  */
-router.post('/detect-language', auth, async (req, res) => {
+router.post('/detect-language', auth, async (c) => {
   try {
-    const { emailContent } = req.body;
+    const { emailContent } = await c.req.json();
     
     if (!emailContent) {
-      return res.status(400).json({ 
+      return c.json({ 
         success: false,
         message: 'Missing email content',
         error: 'emailContent is required'
-      });
+      }, 400);
     }
 
     const language = await detectEmailLanguage(emailContent);
     
-    res.json({
+    return c.json({
       success: true,
       language,
       detected: true
     });
   } catch (err) {
     console.error('Error detecting language:', err);
-    res.status(500).json({ 
+    return c.json({ 
       success: false,
       message: 'Error detecting language',
       error: err.message
-    });
+    }, 500);
   }
 });
 
@@ -131,32 +132,32 @@ router.post('/detect-language', auth, async (req, res) => {
  * @desc    Batch process multiple emails with bilingual AI
  * @access  Private
  */
-router.post('/batch-process', auth, async (req, res) => {
+router.post('/batch-process', auth, async (c) => {
   try {
-    const { emails } = req.body;
+    const { emails } = await c.req.json();
     
     if (!emails || !Array.isArray(emails)) {
-      return res.status(400).json({ 
+      return c.json({ 
         success: false,
         message: 'Emails array is required',
         error: 'emails must be an array'
-      });
+      }, 400);
     }
 
     if (emails.length === 0) {
-      return res.status(400).json({ 
+      return c.json({ 
         success: false,
         message: 'Emails array cannot be empty',
         error: 'Provide at least one email to process'
-      });
+      }, 400);
     }
 
     if (emails.length > 50) {
-      return res.status(400).json({ 
+      return c.json({ 
         success: false,
         message: 'Too many emails',
         error: 'Maximum 50 emails per batch'
-      });
+      }, 400);
     }
 
     const results = await batchProcessEmails(emails);
@@ -168,18 +169,18 @@ router.post('/batch-process', auth, async (req, res) => {
       languages: [...new Set(results.filter(r => r.analysis).map(r => r.analysis.language))]
     };
     
-    res.json({
+    return c.json({
       success: true,
       results,
       summary
     });
   } catch (err) {
     console.error('Error batch processing emails:', err);
-    res.status(500).json({ 
+    return c.json({ 
       success: false,
       message: 'Error batch processing emails',
       error: err.message
-    });
+    }, 500);
   }
 });
 
@@ -188,8 +189,8 @@ router.post('/batch-process', auth, async (req, res) => {
  * @desc    Health check for AI service
  * @access  Public
  */
-router.get('/health', (req, res) => {
-  res.json({
+router.get('/health', (c) => {
+  return c.json({
     success: true,
     message: 'AI service is running',
     timestamp: new Date().toISOString(),
@@ -203,8 +204,8 @@ router.get('/health', (req, res) => {
  * @desc    Get available AI models information
  * @access  Private
  */
-router.get('/models', auth, (req, res) => {
-  res.json({
+router.get('/models', auth, (c) => {
+  return c.json({
     success: true,
     models: [
       {
@@ -218,4 +219,4 @@ router.get('/models', auth, (req, res) => {
   });
 });
 
-module.exports = router;
+export default router;
