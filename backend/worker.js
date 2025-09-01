@@ -16,7 +16,11 @@ const app = new Hono()
 app.use('*', logger())
 app.use('*', secureHeaders())
 app.use('*', cors({
-  origin: ['https://your-domain.pages.dev', 'http://localhost:3000'],
+  origin: [
+    'https://ai-email-agent-frontend.pages.dev',
+    'https://*.pages.dev',
+    'http://localhost:3000'
+  ],
   credentials: true,
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],

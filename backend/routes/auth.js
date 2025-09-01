@@ -37,7 +37,7 @@ router.get('/google/callback', async (c) => {
   try {
     const code = c.req.query('code');
     if (!code) {
-      return c.redirect(`${process.env.FRONTEND_URL}/login?error=No authorization code`);
+      return c.redirect(`https://ai-email-agent-frontend.pages.dev/login?error=No authorization code`);
     }
 
     // Exchange code for tokens
@@ -85,10 +85,10 @@ router.get('/google/callback', async (c) => {
     };
 
     const token = generateToken(user);
-    return c.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}&provider=google`);
+    return c.redirect(`https://ai-email-agent-frontend.pages.dev/auth/callback?token=${token}&provider=google`);
   } catch (error) {
     console.error('Google OAuth callback error:', error);
-    return c.redirect(`${process.env.FRONTEND_URL}/login?error=Authentication failed`);
+    return c.redirect(`https://ai-email-agent-frontend.pages.dev/login?error=Authentication failed`);
   }
 });
 
@@ -109,7 +109,7 @@ router.get('/microsoft/callback', async (c) => {
   try {
     const code = c.req.query('code');
     if (!code) {
-      return c.redirect(`${process.env.FRONTEND_URL}/login?error=No authorization code`);
+      return c.redirect(`https://ai-email-agent-frontend.pages.dev/login?error=No authorization code`);
     }
 
     // Exchange code for tokens
@@ -157,10 +157,10 @@ router.get('/microsoft/callback', async (c) => {
     };
 
     const token = generateToken(user);
-    return c.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}&provider=microsoft`);
+    return c.redirect(`https://ai-email-agent-frontend.pages.dev/auth/callback?token=${token}&provider=microsoft`);
   } catch (error) {
     console.error('Microsoft OAuth callback error:', error);
-    return c.redirect(`${process.env.FRONTEND_URL}/login?error=Authentication failed`);
+    return c.redirect(`https://ai-email-agent-frontend.pages.dev/login?error=Authentication failed`);
   }
 });
 
