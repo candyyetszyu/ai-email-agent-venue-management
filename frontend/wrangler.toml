@@ -1,0 +1,14 @@
+[build]
+command = "npm run build"
+cwd = "."
+
+[site]
+bucket = "./build"
+entry-point = "."
+
+[env.production]
+name = "ai-email-agent-frontend"
+compatibility_date = "2025-08-31"
+
+[env.production.vars]
+REACT_APP_API_URL = "https://ai-email-agent-venue-management.candy-twghlkss.workers.dev/api"

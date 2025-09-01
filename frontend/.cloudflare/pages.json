@@ -1,0 +1,21 @@
+{
+  "name": "ai-email-agent-frontend",
+  "build": {
+    "command": "npm run build",
+    "output": "build",
+    "environment": {
+      "REACT_APP_API_URL": "https://ai-email-agent-venue-management.candy-twghlkss.workers.dev/api",
+      "REACT_APP_BACKEND_URL": "https://ai-email-agent-venue-management.candy-twghlkss.workers.dev"
+    }
+  },
+  "routes": [
+    {
+      "pattern": "/static/*",
+      "serve": "/static/*"
+    },
+    {
+      "pattern": "/*",
+      "serve": "/index.html"
+    }
+  ]
+}
